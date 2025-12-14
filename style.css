@@ -9,9 +9,8 @@ body {
   display: grid;
   grid-template-columns: repeat(6, 50px);
   grid-template-rows: repeat(6, 50px);
-  gap: 8px;
+  gap: 5px;
   justify-content: center;
-  margin-top: 20px;
 }
 
 .cell {
@@ -34,5 +33,5 @@ body {
 }
 
 .spangram {
-  background: #ffd800 !important;
+  background: #ffdd55 !important;
 }
