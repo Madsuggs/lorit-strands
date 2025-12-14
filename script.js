@@ -19,7 +19,11 @@ const spangram = "HOPPENSTEDT";
 
 let selected = [];
 let foundWords = [];
-let isDown = false;
+let mouseDown = false;
+
+window.onload = () => {
+  render();
+};
 
 function render() {
   const root = document.getElementById("root");
@@ -37,7 +41,7 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // bereits gelöste Wörter färben
+      // gefundene Wörter markieren
       for (const w of foundWords) {
         for (const p of w.pos) {
           if (p[0] === r && p[1] === c) {
@@ -46,39 +50,29 @@ function render() {
         }
       }
 
-      // aktuelle Auswahl blau markieren
+      // aktuelle Auswahl markieren
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // EVENTS
-
-      // Finger runter → neue Auswahl starten
-      cell.addEventListener("pointerdown", e => {
+      // Maussteuerung
+      cell.addEventListener("mousedown", (e) => {
         e.preventDefault();
-        isDown = true;
+        mouseDown = true;
         selected = [[r, c]];
         render();
       });
 
-      // Finger bewegt sich über anderen Buchstaben → hinzufügen
-      cell.addEventListener("pointerenter", e => {
-        if (isDown) {
+      cell.addEventListener("mouseenter", (e) => {
+        if (mouseDown) {
           selected.push([r, c]);
           render();
         }
       });
 
-      // iPhone-Workaround: pointerleave löst zuverlässig aus
-      cell.addEventListener("pointerleave", e => {
-        if (isDown) {
-          finishSelection();
-        }
-      });
-
-      // Fallback für PC-Maus
-      cell.addEventListener("pointerup", e => {
-        finishSelection();
+      cell.addEventListener("mouseup", () => {
+        mouseDown = false;
+        checkWord();
       });
 
       g.appendChild(cell);
@@ -88,24 +82,19 @@ function render() {
   root.appendChild(g);
 }
 
-function finishSelection() {
-  isDown = false;
-  setTimeout(checkWord, 5);
-}
-
 function checkWord() {
   if (selected.length === 0) return;
 
   const word = selected.map(p => grid[p[0]][p[1]]).join("");
   const rev = word.split("").reverse().join("");
 
-  let matched =
-    solutions.includes(word) ? word :
-    solutions.includes(rev)  ? rev  :
-    null;
+  let matched = null;
+
+  if (solutions.includes(word)) matched = word;
+  if (solutions.includes(rev)) matched = rev;
 
   if (matched) {
-    // Wenn Wort noch nicht gespeichert, dann hinzufügen
+    // Doppeltes Wort vermeiden
     if (!foundWords.some(w => w.word === matched)) {
       foundWords.push({
         word: matched,
@@ -118,5 +107,3 @@ function checkWord() {
   selected = [];
   render();
 }
-
-window.onload = render;
