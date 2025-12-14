@@ -7,113 +7,98 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
-const solutions = [
-  "LAMETTA",
-  "EI",
-  "JODELDIPLOM",
-  "NUDEL",
-  "HOPPENSTEDT"
-];
-
+const solutions = ["LAMETTA", "EI", "JODELDIPLOM", "NUDEL", "HOPPENSTEDT"];
 const spangram = "HOPPENSTEDT";
 
+let isDown = false;
 let selected = [];
+let usedPositions = new Set();     // verhindert mehrfaches Ziehen über dieselbe Zelle
 let foundWords = [];
-let mouseDown = false;
-
-window.onload = () => {
-  render();
-};
 
 function render() {
-  const root = document.getElementById("root");
-  root.innerHTML = "";
+    const root = document.getElementById("root");
+    root.innerHTML = "";
 
-  const g = document.createElement("div");
-  g.className = "grid";
-  g.id = "gridContainer";
+    const g = document.createElement("div");
+    g.className = "grid";
 
-  // Wenn Maus den Container verlässt → Auswahl beenden
-  g.addEventListener("mouseleave", () => {
-    if (mouseDown) finishSelection();
-  });
+    for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
 
-  for (let r = 0; r < 6; r++) {
-    for (let c = 0; c < 6; c++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.innerText = grid[r][c];
+            cell.dataset.r = r;
+            cell.dataset.c = c;
 
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.innerText = grid[r][c];
-      cell.dataset.r = r;
-      cell.dataset.c = c;
+            // Markiere gefundene Wörter
+            for (const fw of foundWords) {
+                for (const p of fw.pos) {
+                    if (p[0] === r && p[1] === c) {
+                        cell.classList.add(fw.isSpangram ? "spangram" : "found");
+                    }
+                }
+            }
 
-      // Markiere gefundene Wörter
-      for (const w of foundWords) {
-        for (const p of w.pos) {
-          if (p[0] === r && p[1] === c) {
-            cell.classList.add(w.isSpangram ? "spangram" : "found");
-          }
+            // Markiere aktuelle Auswahl
+            if (selected.some(p => p[0] === r && p[1] === c)) {
+                cell.classList.add("selected");
+            }
+
+            // EVENTS
+            cell.addEventListener("pointerdown", e => {
+                e.preventDefault();
+                isDown = true;
+                selected = [[r, c]];
+                usedPositions = new Set([`${r},${c}`]);
+                render();
+            });
+
+            cell.addEventListener("pointerenter", e => {
+                if (!isDown) return;
+
+                const key = `${r},${c}`;
+                if (!usedPositions.has(key)) {
+                    usedPositions.add(key);
+                    selected.push([r, c]);
+                    render();
+                }
+            });
+
+            cell.addEventListener("pointerup", e => {
+                isDown = false;
+                finishSelection();   // WICHTIG: wird erst NACH dem Up ausgeführt
+            });
+
+            g.appendChild(cell);
         }
-      }
-
-      // laufende Auswahl markieren
-      if (selected.some(p => p[0] === r && p[1] === c)) {
-        cell.classList.add("selected");
-      }
-
-      // Mouse Events
-      cell.addEventListener("mousedown", e => {
-        e.preventDefault();
-        mouseDown = true;
-        selected = [[r, c]];
-        render();
-      });
-
-      cell.addEventListener("mouseenter", e => {
-        if (mouseDown) {
-          selected.push([r, c]);
-          render();
-        }
-      });
-
-      // Falls mouseup funktioniert → zusätzlich
-      cell.addEventListener("mouseup", () => {
-        finishSelection();
-      });
-
-      g.appendChild(cell);
     }
-  }
-
-  root.appendChild(g);
+    root.appendChild(g);
 }
 
 function finishSelection() {
-  mouseDown = false;
-  checkWord();
-}
+    if (selected.length === 0) return;
 
-function checkWord() {
-  if (selected.length === 0) return;
+    const word = selected.map(p => grid[p[0]][p[1]]).join("");
+    const rev = [...word].reverse().join("");
 
-  const word = selected.map(p => grid[p[0]][p[1]]).join("");
-  const rev = word.split("").reverse().join("");
+    let matched = null;
+    if (solutions.includes(word)) matched = word;
+    if (solutions.includes(rev)) matched = rev;
 
-  let matched = null;
-  if (solutions.includes(word)) matched = word;
-  if (solutions.includes(rev)) matched = rev;
-
-  if (matched) {
-
-    if (!foundWords.some(w => w.word === matched)) {
-      foundWords.push({
-        word: matched,
-        pos: [...selected],
-        isSpangram: matched === spangram
-      });
+    if (matched) {
+        // nur aufnehmen, wenn noch nicht gespeichert
+        if (!foundWords.some(w => w.word === matched)) {
+            foundWords.push({
+                word: matched,
+                pos: [...selected],
+                isSpangram: matched === spangram
+            });
+        }
     }
-  }
 
-  selected = [];
-  render();
+    selected = [];
+    render();
 }
+
+window.onload = render;
