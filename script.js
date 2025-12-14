@@ -94,20 +94,19 @@ function checkWord() {
   const word = selected.map(p => grid[p[0]][p[1]]).join("");
   const rev = word.split("").reverse().join("");
 
-  let matched = null;
-
-  if (solutions.includes(word)) matched = word;
-  if (solutions.includes(rev)) matched = rev;
+  let matched =
+    solutions.includes(word) ? word :
+    solutions.includes(rev)  ? rev  :
+    null;
 
   if (matched) {
-    const index = solutions.indexOf(matched);
+    // Prüfen ob dieses Wort bereits gefunden wurde
+    const exists = foundWords.some(w => w.word === matched);
 
-    // nicht doppelt hinzufügen
-    if (!foundWords.some(w => w.word === matched)) {
+    if (!exists) {
       foundWords.push({
         word: matched,
-        pos: [...selected],
-        index: index,
+        pos: [...selected],       // ← ganz wichtig: Positionen speichern!
         isSpangram: matched === spangram
       });
     }
