@@ -1,0 +1,47 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 20px;
+  user-select: none;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 60px);
+  grid-template-rows: repeat(6, 60px);
+  gap: 6px;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.selected {
+  background: #99ccff !important;
+}
+
+.found {
+  background: #77dd77 !important;
+}
+
+.spangram {
+  background: #ffeb3b !important;
+}
