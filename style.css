@@ -9,29 +9,33 @@ body {
   display: grid;
   grid-template-columns: repeat(6, 50px);
   grid-template-rows: repeat(6, 50px);
-  gap: 5px;
+  gap: 6px;
   justify-content: center;
+  margin-top: 25px;
 }
 
 .cell {
   width: 50px;
   height: 50px;
-  background: #eee;
+  background: #eeeeee;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  border-radius: 8px;
   font-size: 26px;
-  border-radius: 6px;
 }
 
+/* Auswahl */
 .selected {
   background: #99ccff !important;
 }
 
-.found {
-  background: #77dd77 !important;
-}
+/* Farben pro Wort */
+.found0 { background: #63C7FF !important; } /* LAMETTA */
+.found1 { background: #FF78C4 !important; } /* EI */
+.found2 { background: #FFB347 !important; } /* JODELDIPLOM */
+.found3 { background: #C084F5 !important; } /* NUDEL */
 
-.spangram {
-  background: #ffdd55 !important;
-}
+/* Spangram */
+.spangram { background: #F7E65A !important; }
+
