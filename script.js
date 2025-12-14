@@ -4,64 +4,72 @@ const grid = [
 ["A","T","T","I","P","L"],
 ["N","E","O","H","M","O"],
 ["S","P","P","T","U","D"],
-["T","E","D","L","E","N"],
+["T","E","D","L","E","N"]
 ];
 
-const solutions = ["LAMETTA", "EI", "JODELDIPLOM", "NUDEL", "HOPPENSTEDT"];
-const spangram = "HOPPENSTEDT";
+const solutions = [
+  "LAMETTA",
+  "EI",
+  "JODELDIPLOM",
+  "NUDEL",
+  "HOPPENSTEDT"
+];
+
+const spangram = "HOPPENSTEDT";  // wird gelb dargestellt
 
 let selected = [];
-let foundWords = [];
-
-window.onload = () => render();
+let foundWords = [];     // speichert die Buchstaben-Positionen korrekt
+let isDown = false;
 
 function render() {
   const root = document.getElementById("root");
   root.innerHTML = "";
-
+  
   const g = document.createElement("div");
   g.className = "grid";
-
+  
   for (let r = 0; r < 6; r++) {
     for (let c = 0; c < 6; c++) {
+      
       const cell = document.createElement("div");
       cell.className = "cell";
       cell.innerText = grid[r][c];
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      for (const word of foundWords) {
-        if (word.positions.some(p => p[0] === r && p[1] === c)) {
-          cell.classList.add(word.isSpangram ? "spangram" : "found");
-        }
-      }
+      // bereits gefundene Wörter färben
+      foundWords.forEach(word => {
+        word.pos.forEach(p => {
+          if (p[0] === r && p[1] === c) {
+            cell.classList.add(word.isSpangram ? "spangram" : "found");
+          }
+        });
+      });
 
+      // aktuelle Auswahl markieren
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // Mouse
-      cell.onmousedown = () => { selected = [[r, c]]; render(); };
-      cell.onmouseenter = e => {
-        if (e.buttons === 1) selectExtend(r, c);
-      };
-      cell.onmouseup = finishSelect;
-
-      // Touch
-      cell.ontouchstart = e => {
+      // Maus / Touch Events
+      cell.addEventListener("pointerdown", (e) => {
         e.preventDefault();
+        isDown = true;
         selected = [[r, c]];
         render();
-      };
-      cell.ontouchmove = e => {
-        const t = e.touches[0];
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && el.dataset.r) {
-          selectExtend(parseInt(el.dataset.r), parseInt(el.dataset.c));
+      });
+
+      cell.addEventListener("pointerenter", (e) => {
+        if (isDown) {
+          selected.push([r, c]);
+          render();
         }
-        e.preventDefault();
-      };
-      cell.ontouchend = finishSelect;
+      });
+
+      cell.addEventListener("pointerup", () => {
+        isDown = false;
+        checkWord();
+      });
 
       g.appendChild(cell);
     }
@@ -70,43 +78,29 @@ function render() {
   root.appendChild(g);
 }
 
-function selectExtend(r, c) {
-  const last = selected[selected.length - 1];
-  if (!last) return;
-
-  const adjacent =
-    Math.abs(last[0] - r) <= 1 &&
-    Math.abs(last[1] - c) <= 1;
-
-  if (adjacent) {
-    selected.push([r, c]);
-    render();
-  }
-}
-
-function finishSelect() {
+function checkWord() {
   if (selected.length === 0) return;
 
-  let normal = selected.map(p => grid[p[0]][p[1]]).join("");
-  let reversed = normal.split("").reverse().join("");
+  const word = selected.map(p => grid[p[0]][p[1]]).join("");
+  const rev = word.split("").reverse().join("");
 
-  let correct = null;
+  let matched = null;
 
-  if (solutions.includes(normal)) correct = selected;
-  else if (solutions.includes(reversed)) correct = [...selected].reverse();
+  if (solutions.includes(word)) matched = word;
+  if (solutions.includes(rev)) matched = rev;
 
-  if (correct) {
-    const wordText = correct.map(p => grid[p[0]][p[1]]).join("");
-
-    if (!foundWords.some(w => w.text === wordText)) {
-      foundWords.push({
-        text: wordText,
-        positions: correct,
-        isSpangram: wordText === spangram
-      });
-    }
+  if (matched) {
+    foundWords.push({
+      word: matched,
+      pos: [...selected],
+      isSpangram: matched === spangram
+    });
   }
 
   selected = [];
   render();
 }
+
+window.onload = () => {
+  render();
+};
