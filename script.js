@@ -7,98 +7,108 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
-const solutions = ["LAMETTA", "EI", "JODELDIPLOM", "NUDEL", "HOPPENSTEDT"];
+const solutions = [
+  "LAMETTA",
+  "EI",
+  "JODELDIPLOM",
+  "NUDEL",
+  "HOPPENSTEDT"
+];
+
 const spangram = "HOPPENSTEDT";
 
-let isDown = false;
 let selected = [];
-let usedPositions = new Set();     // verhindert mehrfaches Ziehen über dieselbe Zelle
 let foundWords = [];
+let isDown = false;
+
+window.onload = () => render();
 
 function render() {
-    const root = document.getElementById("root");
-    root.innerHTML = "";
+  const root = document.getElementById("root");
+  root.innerHTML = "";
 
-    const g = document.createElement("div");
-    g.className = "grid";
+  const g = document.createElement("div");
+  g.className = "grid";
 
-    for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 6; c++) {
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 6; c++) {
 
-            const cell = document.createElement("div");
-            cell.className = "cell";
-            cell.innerText = grid[r][c];
-            cell.dataset.r = r;
-            cell.dataset.c = c;
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerText = grid[r][c];
+      cell.dataset.r = r;
+      cell.dataset.c = c;
 
-            // Markiere gefundene Wörter
-            for (const fw of foundWords) {
-                for (const p of fw.pos) {
-                    if (p[0] === r && p[1] === c) {
-                        cell.classList.add(fw.isSpangram ? "spangram" : "found");
-                    }
-                }
+      // FARBE FÜR GEFUNDENE WÖRTER
+      for (const w of foundWords) {
+        for (const p of w.pos) {
+          if (p[0] === r && p[1] === c) {
+            if (w.isSpangram) {
+              cell.classList.add("spangram");
+            } else {
+              cell.classList.add("found" + w.index);
             }
-
-            // Markiere aktuelle Auswahl
-            if (selected.some(p => p[0] === r && p[1] === c)) {
-                cell.classList.add("selected");
-            }
-
-            // EVENTS
-            cell.addEventListener("pointerdown", e => {
-                e.preventDefault();
-                isDown = true;
-                selected = [[r, c]];
-                usedPositions = new Set([`${r},${c}`]);
-                render();
-            });
-
-            cell.addEventListener("pointerenter", e => {
-                if (!isDown) return;
-
-                const key = `${r},${c}`;
-                if (!usedPositions.has(key)) {
-                    usedPositions.add(key);
-                    selected.push([r, c]);
-                    render();
-                }
-            });
-
-            cell.addEventListener("pointerup", e => {
-                isDown = false;
-                finishSelection();   // WICHTIG: wird erst NACH dem Up ausgeführt
-            });
-
-            g.appendChild(cell);
+          }
         }
+      }
+
+      // aktuelle Auswahl hervorheben
+      if (selected.some(p => p[0] === r && p[1] === c)) {
+        cell.classList.add("selected");
+      }
+
+      // Pointer Events
+      cell.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        isDown = true;
+        selected = [[r, c]];
+        render();
+      });
+
+      cell.addEventListener("pointerenter", (e) => {
+        if (isDown) {
+          selected.push([r, c]);
+          render();
+        }
+      });
+
+      cell.addEventListener("pointerup", () => {
+        isDown = false;
+        setTimeout(checkWord, 15); // Safari-Schutz
+      });
+
+      g.appendChild(cell);
     }
-    root.appendChild(g);
+  }
+
+  root.appendChild(g);
 }
 
-function finishSelection() {
-    if (selected.length === 0) return;
+function checkWord() {
+  if (selected.length === 0) return;
 
-    const word = selected.map(p => grid[p[0]][p[1]]).join("");
-    const rev = [...word].reverse().join("");
+  const word = selected.map(p => grid[p[0]][p[1]]).join("");
+  const rev = word.split("").reverse().join("");
 
-    let matched = null;
-    if (solutions.includes(word)) matched = word;
-    if (solutions.includes(rev)) matched = rev;
+  let matched = null;
 
-    if (matched) {
-        // nur aufnehmen, wenn noch nicht gespeichert
-        if (!foundWords.some(w => w.word === matched)) {
-            foundWords.push({
-                word: matched,
-                pos: [...selected],
-                isSpangram: matched === spangram
-            });
-        }
+  if (solutions.includes(word)) matched = word;
+  if (solutions.includes(rev)) matched = rev;
+
+  if (matched) {
+    const index = solutions.indexOf(matched);
+
+    // nicht doppelt hinzufügen
+    if (!foundWords.some(w => w.word === matched)) {
+      foundWords.push({
+        word: matched,
+        pos: [...selected],
+        index: index,
+        isSpangram: matched === spangram
+      });
     }
+  }
 
-    selected = [];
-    render();
+  selected = [];
+  render();
 }
-
-window.onload = render;
