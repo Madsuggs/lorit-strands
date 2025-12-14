@@ -37,7 +37,7 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // Gefundene Wörter markieren
+      // bereits gelöste Wörter färben
       for (const w of foundWords) {
         for (const p of w.pos) {
           if (p[0] === r && p[1] === c) {
@@ -46,12 +46,14 @@ function render() {
         }
       }
 
-      // Aktuelle Auswahl markieren
+      // aktuelle Auswahl blau markieren
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // Pointer Events
+      // EVENTS
+
+      // Finger runter → neue Auswahl starten
       cell.addEventListener("pointerdown", e => {
         e.preventDefault();
         isDown = true;
@@ -59,6 +61,7 @@ function render() {
         render();
       });
 
+      // Finger bewegt sich über anderen Buchstaben → hinzufügen
       cell.addEventListener("pointerenter", e => {
         if (isDown) {
           selected.push([r, c]);
@@ -66,10 +69,16 @@ function render() {
         }
       });
 
+      // iPhone-Workaround: pointerleave löst zuverlässig aus
+      cell.addEventListener("pointerleave", e => {
+        if (isDown) {
+          finishSelection();
+        }
+      });
+
+      // Fallback für PC-Maus
       cell.addEventListener("pointerup", e => {
-        isDown = false;
-        // !! WICHTIG: Verzögerung, damit Safari selected NICHT verliert
-        setTimeout(checkWord, 10);
+        finishSelection();
       });
 
       g.appendChild(cell);
@@ -79,24 +88,28 @@ function render() {
   root.appendChild(g);
 }
 
+function finishSelection() {
+  isDown = false;
+  setTimeout(checkWord, 5);
+}
+
 function checkWord() {
   if (selected.length === 0) return;
 
   const word = selected.map(p => grid[p[0]][p[1]]).join("");
   const rev = word.split("").reverse().join("");
 
-  let matched = solutions.includes(word)
-    ? word
-    : solutions.includes(rev)
-    ? rev
-    : null;
+  let matched =
+    solutions.includes(word) ? word :
+    solutions.includes(rev)  ? rev  :
+    null;
 
   if (matched) {
-    // Füge Wort nur hinzu, wenn es noch nicht existiert
+    // Wenn Wort noch nicht gespeichert, dann hinzufügen
     if (!foundWords.some(w => w.word === matched)) {
       foundWords.push({
         word: matched,
-        pos: [...selected],  // <-- gespeicherte Positionen bleiben erhalten!
+        pos: [...selected],
         isSpangram: matched === spangram
       });
     }
