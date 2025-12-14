@@ -1,3 +1,4 @@
+// --- GRID ---
 const grid = [
 ["L","A","M","J","O","D"],
 ["E","I","E","D","L","E"],
@@ -7,6 +8,7 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
+// --- WÖRTER ---
 const solutions = [
   "LAMETTA",
   "EI",
@@ -15,18 +17,21 @@ const solutions = [
   "HOPPENSTEDT"
 ];
 
+// Spangram bleibt gelb
 const spangram = "HOPPENSTEDT";
 
+// --- STATES ---
 let selected = [];
 let foundWords = [];
 let isDown = false;
-// GLOBALER NOTSTOP gegen Dauer-Markieren
-window.addEventListener("pointerup", () => { isDown = false; });
-window.addEventListener("pointercancel", () => { isDown = false; });
-window.addEventListener("mouseleave", () => { isDown = false; });
 
-window.onload = () => render();
+// Maus/Touch Reset – verhindert Dauer-Markieren
+window.addEventListener("pointerup", () => isDown = false);
+window.addEventListener("pointercancel", () => isDown = false);
+window.addEventListener("mouseleave", () => isDown = false);
 
+
+// --- RENDER ---
 function render() {
   const root = document.getElementById("root");
   root.innerHTML = "";
@@ -43,25 +48,23 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // FARBE FÜR GEFUNDENE WÖRTER
-      for (const w of foundWords) {
-        for (const p of w.pos) {
+      // Gefundene Wörter einfärben
+      foundWords.forEach((w, idx) => {
+        w.pos.forEach(p => {
           if (p[0] === r && p[1] === c) {
-            if (w.isSpangram) {
-              cell.classList.add("spangram");
-            } else {
-              cell.classList.add("found" + w.index);
-            }
+            cell.classList.add(
+              w.isSpangram ? "spangram" : ("found" + w.colorIndex)
+            );
           }
-        }
-      }
+        });
+      });
 
-      // aktuelle Auswahl hervorheben
+      // Aktuelle Auswahl markieren
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // Pointer Events
+      // POINTER EVENTS
       cell.addEventListener("pointerdown", (e) => {
         e.preventDefault();
         isDown = true;
@@ -78,7 +81,7 @@ function render() {
 
       cell.addEventListener("pointerup", () => {
         isDown = false;
-        setTimeout(checkWord, 15); // Safari-Schutz
+        setTimeout(checkWord, 20);
       });
 
       g.appendChild(cell);
@@ -88,6 +91,8 @@ function render() {
   root.appendChild(g);
 }
 
+
+// --- CHECK WORD ---
 function checkWord() {
   if (selected.length === 0) return;
 
@@ -100,14 +105,12 @@ function checkWord() {
     null;
 
   if (matched) {
-    // Prüfen ob dieses Wort bereits gefunden wurde
-    const exists = foundWords.some(w => w.word === matched);
-
-    if (!exists) {
+    if (!foundWords.some(w => w.word === matched)) {
       foundWords.push({
         word: matched,
-        pos: [...selected],       // ← ganz wichtig: Positionen speichern!
-        isSpangram: matched === spangram
+        pos: [...selected],
+        isSpangram: matched === spangram,
+        colorIndex: foundWords.length  // → 0,1,2,3,... für Farben
       });
     }
   }
@@ -115,3 +118,7 @@ function checkWord() {
   selected = [];
   render();
 }
+
+
+// --- START ---
+window.onload = render;
