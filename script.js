@@ -20,6 +20,10 @@ const spangram = "HOPPENSTEDT";
 let selected = [];
 let foundWords = [];
 let isDown = false;
+// GLOBALER NOTSTOP gegen Dauer-Markieren
+window.addEventListener("pointerup", () => { isDown = false; });
+window.addEventListener("pointercancel", () => { isDown = false; });
+window.addEventListener("mouseleave", () => { isDown = false; });
 
 window.onload = () => render();
 
