@@ -9,15 +9,7 @@ const grid = [
 ];
 
 // --- LÖSUNGSWÖRTER ---
-const solutions = [
-  "LAMETTA",
-  "EI",
-  "JODELDIPLOM",
-  "NUDEL",
-  "HOPPENSTEDT"
-];
-
-// Spangram bleibt gelb
+const solutions = ["LAMETTA","EI","JODELDIPLOM","NUDEL","HOPPENSTEDT"];
 const spangram = "HOPPENSTEDT";
 
 // --- STATE ---
@@ -26,9 +18,9 @@ let foundWords = [];
 let isDown = false;
 
 // Notfall: Markieren stoppen wenn Pointer verloren geht
-window.addEventListener("pointerup", () => isDown = false);
-window.addEventListener("pointercancel", () => isDown = false);
-window.addEventListener("mouseleave", () => isDown = false);
+["pointerup","pointercancel","mouseleave"].forEach(evt =>
+  window.addEventListener(evt, () => isDown = false)
+);
 
 // --- RENDER ---
 function render() {
@@ -48,17 +40,22 @@ function render() {
       cell.dataset.c = c;
 
       // Gefundene Wörter farbig darstellen
-      foundWords.forEach(w => {
-        w.pos.forEach(p => {
+      for (const w of foundWords) {
+        for (const p of w.pos) {
           if (p[0] === r && p[1] === c) {
+
+            // SPANGRAM GELB
             if (w.isSpangram) {
               cell.classList.add("spangram");
-            } else {
+            }
+
+            // NORMALES WORT → Farbe found0, found1, …
+            else if (typeof w.colorIndex === "number") {
               cell.classList.add("found" + w.colorIndex);
             }
           }
-        });
-      });
+        }
+      }
 
       // Aktuelle Auswahl markieren
       if (selected.some(p => p[0] === r && p[1] === c)) {
@@ -82,7 +79,7 @@ function render() {
 
       cell.addEventListener("pointerup", () => {
         isDown = false;
-        setTimeout(checkWord, 20); // Safari-Fix
+        setTimeout(checkWord, 20);
       });
 
       g.appendChild(cell);
@@ -101,18 +98,17 @@ function checkWord() {
   const rev = [...word].reverse().join("");
 
   let matched = null;
-
   if (solutions.includes(word)) matched = word;
   if (solutions.includes(rev)) matched = rev;
 
   if (matched) {
-    // Wenn dieses Wort noch nicht gefunden wurde → hinzufügen
     if (!foundWords.some(w => w.word === matched)) {
+
       foundWords.push({
         word: matched,
         pos: [...selected],
         isSpangram: matched === spangram,
-        colorIndex: foundWords.length  // 0,1,2,3... für Farben
+        colorIndex: foundWords.length   // ← garantiert korrekt
       });
     }
   }
