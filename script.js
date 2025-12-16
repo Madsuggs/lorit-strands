@@ -8,7 +8,7 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
-// --- WÖRTER ---
+// --- LÖSUNGSWÖRTER ---
 const solutions = [
   "LAMETTA",
   "EI",
@@ -20,16 +20,15 @@ const solutions = [
 // Spangram bleibt gelb
 const spangram = "HOPPENSTEDT";
 
-// --- STATES ---
+// --- STATE ---
 let selected = [];
 let foundWords = [];
 let isDown = false;
 
-// Maus/Touch Reset – verhindert Dauer-Markieren
+// Notfall: Markieren stoppen wenn Pointer verloren geht
 window.addEventListener("pointerup", () => isDown = false);
 window.addEventListener("pointercancel", () => isDown = false);
 window.addEventListener("mouseleave", () => isDown = false);
-
 
 // --- RENDER ---
 function render() {
@@ -48,13 +47,15 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // Gefundene Wörter einfärben
-      foundWords.forEach((w, idx) => {
+      // Gefundene Wörter farbig darstellen
+      foundWords.forEach(w => {
         w.pos.forEach(p => {
           if (p[0] === r && p[1] === c) {
-            cell.classList.add(
-              w.isSpangram ? "spangram" : ("found" + w.colorIndex)
-            );
+            if (w.isSpangram) {
+              cell.classList.add("spangram");
+            } else {
+              cell.classList.add("found" + w.colorIndex);
+            }
           }
         });
       });
@@ -64,7 +65,7 @@ function render() {
         cell.classList.add("selected");
       }
 
-      // POINTER EVENTS
+      // Events
       cell.addEventListener("pointerdown", (e) => {
         e.preventDefault();
         isDown = true;
@@ -72,7 +73,7 @@ function render() {
         render();
       });
 
-      cell.addEventListener("pointerenter", (e) => {
+      cell.addEventListener("pointerenter", () => {
         if (isDown) {
           selected.push([r, c]);
           render();
@@ -81,7 +82,7 @@ function render() {
 
       cell.addEventListener("pointerup", () => {
         isDown = false;
-        setTimeout(checkWord, 20);
+        setTimeout(checkWord, 20); // Safari-Fix
       });
 
       g.appendChild(cell);
@@ -92,25 +93,26 @@ function render() {
 }
 
 
-// --- CHECK WORD ---
+// --- CHECK FOR WORD ---
 function checkWord() {
   if (selected.length === 0) return;
 
   const word = selected.map(p => grid[p[0]][p[1]]).join("");
-  const rev = word.split("").reverse().join("");
+  const rev = [...word].reverse().join("");
 
-  let matched =
-    solutions.includes(word) ? word :
-    solutions.includes(rev)  ? rev  :
-    null;
+  let matched = null;
+
+  if (solutions.includes(word)) matched = word;
+  if (solutions.includes(rev)) matched = rev;
 
   if (matched) {
+    // Wenn dieses Wort noch nicht gefunden wurde → hinzufügen
     if (!foundWords.some(w => w.word === matched)) {
       foundWords.push({
         word: matched,
         pos: [...selected],
         isSpangram: matched === spangram,
-        colorIndex: foundWords.length  // → 0,1,2,3,... für Farben
+        colorIndex: foundWords.length  // 0,1,2,3... für Farben
       });
     }
   }
@@ -119,6 +121,4 @@ function checkWord() {
   render();
 }
 
-
-// --- START ---
 window.onload = render;
