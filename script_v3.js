@@ -1,3 +1,5 @@
+alert("SCRIPT V3 WIRD GELADEN!");
+
 // --- GRID ---
 const grid = [
 ["L","A","M","J","O","D"],
