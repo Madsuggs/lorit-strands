@@ -7,16 +7,13 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
-const solutions = ["LAMETTA","EI","JODELDIPLOM","NUDEL","HOPPENSTEDT"];
-const spangram = "HOPPENSTEDT";
+const solutions = ["LAMETTA","EI","NUDEL","JODELDIPLOM","HOPPENSTEDT"];
 
 let selected = [];
-let foundWords = [];
+let found = [];
 let isDown = false;
 
-window.onload = () => {
-  render();
-};
+window.onload = render;
 
 function render() {
   const root = document.getElementById("root");
@@ -34,33 +31,24 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // Bereits gefundene Wörter zeigen
-      foundWords.forEach((w, index) => {
-        w.pos.forEach(p => {
-          if (p[0] === r && p[1] === c) {
-            cell.classList.add(
-              w.word === spangram ? "spangram" : ("found" + index)
-            );
-          }
-        });
-      });
+      if (found.some(p => p[0] === r && p[1] === c)) {
+        cell.classList.add("found");
+      }
 
-      // aktuelle Auswahl farbig machen
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // Pointer events
       cell.addEventListener("pointerdown", (e) => {
         e.preventDefault();
         isDown = true;
-        selected = [[r, c]];
+        selected = [[r,c]];
         render();
       });
 
       cell.addEventListener("pointerenter", () => {
         if (isDown) {
-          selected.push([r, c]);
+          selected.push([r,c]);
           render();
         }
       });
@@ -83,19 +71,8 @@ function checkWord() {
   const word = selected.map(p => grid[p[0]][p[1]]).join("");
   const rev = [...word].reverse().join("");
 
-  let matched = null;
-
-  if (solutions.includes(word)) matched = word;
-  if (solutions.includes(rev)) matched = rev;
-
-  if (matched) {
-    // nur hinzufügen, wenn wirklich neu
-    if (!foundWords.some(w => w.word === matched)) {
-      foundWords.push({
-        word: matched,
-        pos: [...selected]
-      });
-    }
+  if (solutions.includes(word) || solutions.includes(rev)) {
+    selected.forEach(p => found.push(p));
   }
 
   selected = [];
