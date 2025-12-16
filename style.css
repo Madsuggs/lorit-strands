@@ -5,43 +5,32 @@ body {
   user-select: none;
 }
 
-#root {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(6, 50px);
   grid-template-rows: repeat(6, 50px);
   gap: 5px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .cell {
   width: 50px;
   height: 50px;
   background: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
   border-radius: 6px;
+  font-size: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .selected {
   background: #99ccff !important;
 }
 
-/* Spangram (gelb) */
-.spangram {
-  background: #ffeb3b !important;
-}
-
-/* Mehrfarbig für alle anderen Wörter */
-.found0 { background: #ff9999 !important; } /* Rot */
-.found1 { background: #99ccff !important; } /* Blau */
-.found2 { background: #99ff99 !important; } /* Hellgrün */
-.found3 { background: #ffcc66 !important; } /* Orange */
-.found4 { background: #cc99ff !important; } /* Lila */
-.found5 { background: #ff66cc !important; } /* Pink */
+.found0 { background: #ff9999 !important; }
+.found1 { background: #99ff99 !important; }
+.found2 { background: #ffcc66 !important; }
+.found3 { background: #cc99ff !important; }
+.spangram { background: #ffeb3b !important; }
