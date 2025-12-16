@@ -1,4 +1,3 @@
-// --- GRID ---
 const grid = [
 ["L","A","M","J","O","D"],
 ["E","I","E","D","L","E"],
@@ -8,21 +7,17 @@ const grid = [
 ["T","E","D","L","E","N"]
 ];
 
-// --- LÖSUNGSWÖRTER ---
 const solutions = ["LAMETTA","EI","JODELDIPLOM","NUDEL","HOPPENSTEDT"];
 const spangram = "HOPPENSTEDT";
 
-// --- STATE ---
 let selected = [];
 let foundWords = [];
 let isDown = false;
 
-// Notfall: Markieren stoppen wenn Pointer verloren geht
-["pointerup","pointercancel","mouseleave"].forEach(evt =>
-  window.addEventListener(evt, () => isDown = false)
-);
+window.onload = () => {
+  render();
+};
 
-// --- RENDER ---
 function render() {
   const root = document.getElementById("root");
   root.innerHTML = "";
@@ -39,30 +34,23 @@ function render() {
       cell.dataset.r = r;
       cell.dataset.c = c;
 
-      // Gefundene Wörter farbig darstellen
-      for (const w of foundWords) {
-        for (const p of w.pos) {
+      // Bereits gefundene Wörter zeigen
+      foundWords.forEach((w, index) => {
+        w.pos.forEach(p => {
           if (p[0] === r && p[1] === c) {
-
-            // SPANGRAM GELB
-            if (w.isSpangram) {
-              cell.classList.add("spangram");
-            }
-
-            // NORMALES WORT → Farbe found0, found1, …
-            else if (typeof w.colorIndex === "number") {
-              cell.classList.add("found" + w.colorIndex);
-            }
+            cell.classList.add(
+              w.word === spangram ? "spangram" : ("found" + index)
+            );
           }
-        }
-      }
+        });
+      });
 
-      // Aktuelle Auswahl markieren
+      // aktuelle Auswahl farbig machen
       if (selected.some(p => p[0] === r && p[1] === c)) {
         cell.classList.add("selected");
       }
 
-      // Events
+      // Pointer events
       cell.addEventListener("pointerdown", (e) => {
         e.preventDefault();
         isDown = true;
@@ -79,7 +67,7 @@ function render() {
 
       cell.addEventListener("pointerup", () => {
         isDown = false;
-        setTimeout(checkWord, 20);
+        checkWord();
       });
 
       g.appendChild(cell);
@@ -89,8 +77,6 @@ function render() {
   root.appendChild(g);
 }
 
-
-// --- CHECK FOR WORD ---
 function checkWord() {
   if (selected.length === 0) return;
 
@@ -98,17 +84,16 @@ function checkWord() {
   const rev = [...word].reverse().join("");
 
   let matched = null;
+
   if (solutions.includes(word)) matched = word;
   if (solutions.includes(rev)) matched = rev;
 
   if (matched) {
+    // nur hinzufügen, wenn wirklich neu
     if (!foundWords.some(w => w.word === matched)) {
-
       foundWords.push({
         word: matched,
-        pos: [...selected],
-        isSpangram: matched === spangram,
-        colorIndex: foundWords.length   // ← garantiert korrekt
+        pos: [...selected]
       });
     }
   }
@@ -116,5 +101,3 @@ function checkWord() {
   selected = [];
   render();
 }
-
-window.onload = render;
